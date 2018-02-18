@@ -1,0 +1,47 @@
+---
+title: "Leaflet"
+author: "John B Cheadle"
+date: "February 18, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, eval=FALSE}
+
+library(leaflet)
+my_map <- leaflet() %>%
+    addTiles()
+my_map
+```
+
+```{r, echo=FALSE}
+library(leaflet)
+my_map <- leaflet() %>%
+    addTiles()
+```
+
+## Adding Markers
+
+```{r, echo=FALSE}
+my_map <- my_map %>%
+    addMarkers(lat=39.29, lng=-76.589,
+               popup="Jeff Leek's Office")
+my_map
+```
+
+```{r, eval=FALSE}
+set.seed(2016-04-25)
+df <- data.frame(lat = runif(20, min=39.2, max=39.3), lng=runif(20, min=-76.6, max=-76.5))
+
+df
+
+df %>%
+    leaflet() %>%
+    addTiles() %>%
+    addMarkers()
+
+## This adds markers in the dataframe onto the plot.
+```

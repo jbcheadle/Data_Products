@@ -23,7 +23,7 @@ sites <- c("Camp Randall", "Dept. of BME",
 df %>%
     leaflet() %>%
     addTiles() %>%
-    addMarkers(icon = uwicon, popup = sites)
+    addMarkers(popup = sites)
 
 ## This adds markers in the dataframe onto the plot.
 ```

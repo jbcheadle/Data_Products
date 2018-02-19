@@ -1,0 +1,82 @@
+---
+title: "Week 3 Assignment"
+author: "John B Cheadle"
+date: "February 19, 2018"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(plotly)
+library(quantmod)
+```
+
+## AMZN Stock Price History
+
+```{r plotly,warning=FALSE,echo=FALSE}
+suppressWarnings(options("getSymbols.warning4.0"=FALSE))
+suppressWarnings(options("getSymbols.yahoo.warning"=FALSE))
+invisible(getSymbols("AMZN",src='yahoo',warnings = FALSE))
+
+df <- data.frame(Date=index(AMZN),coredata(AMZN))
+df <- tail(df, 60)
+df$ID <- seq.int(nrow(df))
+
+accumulate_by <- function(dat, var) {
+  var <- lazyeval::f_eval(var, dat)
+  lvls <- plotly:::getLevels(var)
+  dats <- lapply(seq_along(lvls), function(x) {
+    cbind(dat[var %in% lvls[seq(1, x)], ], frame = lvls[[x]])
+  })
+  dplyr::bind_rows(dats)
+}
+
+df <- df %>%
+  accumulate_by(~ID)
+
+p <- df %>%
+  plot_ly(
+    x = ~ID, 
+    y = ~AMZN.Close, 
+    frame = ~frame,
+    type = 'scatter', 
+    mode = 'lines', 
+    line = list(color = 'rgb(114, 94, 59)'),
+    text = ~paste("Day: ", ID, "<br>Close: $", AMZN.Close), 
+    hoverinfo = 'text'
+  ) %>%
+  layout(
+    title = "AMZN: Last 60 days",
+    yaxis = list(
+      title = "Close", 
+      range = c(min(df$AMZN.Close)-100,max(df$AMZN.Close)+100), 
+      zeroline = F,
+      tickprefix = "$"
+    ),
+    xaxis = list(
+      title = "Day", 
+      range = c(0,60), 
+      zeroline = F, 
+      showgrid = F
+    )
+  ) %>% 
+  animation_opts(
+    frame = 100, 
+    transition = 0, 
+    redraw = FALSE
+  ) %>%
+  animation_slider(
+    currentvalue = list(
+      prefix = "Day "
+    )
+  )
+
+p
+
+```
+
+## Resources
+
+Modified from <https://plot.ly/r/cumulative-animations/>
+
+

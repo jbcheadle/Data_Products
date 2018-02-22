@@ -1,29 +1,88 @@
 Coursera Data Products Course Project - Pitch
 ========================================================
 author: John B Cheadle
-date: 19 FEB 2018
+date: 21 FEB 2018
 autosize: true
 transition: rotate
 
-First Slide
-========================================================
-
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
-
-- Bullet 1
-- Bullet 2
-- Bullet 3
-
-Slide With Code
-========================================================
-
-```{r}
-summary(cars)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(plotly)
+library(quantmod)
+suppressWarnings(options("getSymbols.warning4.0"=FALSE))
+suppressWarnings(options("getSymbols.yahoo.warning"=FALSE))
+invisible(getSymbols("AMZN",src='yahoo',warnings = FALSE))
 ```
 
-Slide With Plot
+<style>
+.small-code pre code {
+  font-size: 1em;
+}
+</style>
+
+
+Introducing the Stock Trend Viewer
 ========================================================
 
+The Stock Trend Viewer utilizes the **quantmod** and **plotly** packages to give an up-to-date (last 100 days maximum) trend of the close stock price of user's choosing.
+
+How it works (code)
+========================================================
+class: small-code
+
+```{r, echo=TRUE, eval=FALSE}
+df <- data.frame(Date=index(AMZN),coredata(AMZN))
+df <- tail(df, 60)
+df$ID <- seq.int(nrow(df))
+
+accumulate_by <- function(dat, var) {
+  var <- lazyeval::f_eval(var, dat)
+  lvls <- plotly:::getLevels(var)
+  dats <- lapply(seq_along(lvls), function(x) {
+    cbind(dat[var %in% lvls[seq(1, x)], ], frame = lvls[[x]])
+  })
+  dplyr::bind_rows(dats)
+}
+
+df <- df %>%
+  accumulate_by(~ID)
+
+head(df)
+```
+
+
+How it works (explanation)
+========================================================
+class: small-code
 ```{r, echo=FALSE}
-plot(cars)
+df <- data.frame(Date=index(AMZN),coredata(AMZN))
+df <- tail(df, 60)
+df$ID <- seq.int(nrow(df))
+
+accumulate_by <- function(dat, var) {
+  var <- lazyeval::f_eval(var, dat)
+  lvls <- plotly:::getLevels(var)
+  dats <- lapply(seq_along(lvls), function(x) {
+    cbind(dat[var %in% lvls[seq(1, x)], ], frame = lvls[[x]])
+  })
+  dplyr::bind_rows(dats)
+}
+
+df <- df %>%
+  accumulate_by(~ID)
+
+head(df)
 ```
+Enter in whatever stock ticker symbol you'd like!  Here, we use AMZN as an example.  Behind the scences, the last x days of stock prices are combined into a dataframe.  The **plotly** package is used to nicely plot the close price over time.  One can even animate the trend by pressing the 'Play' button.
+
+Unfortunately plot_ly does not work with Rpres, so no example plot can be included here.  However, feel free to try the shiny application yourself!
+
+Features of the Stock Trend Viewer
+========================================================
+
+- User-entered stock ticker symbol
+- Choose amount of time to look back in stock price history (MAX: 100 days) 
+- Customizable trend-line color and fill color
+- Automate trend line or drag slider to desired day
+- Hover over trend line to display day and closing price
+- Click and drag to zoom in on different parts of trend line
